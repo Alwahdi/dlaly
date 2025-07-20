@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e145409b-6e52-4b7c-86f1-325f686b941c"
+      }
+    },
+    "owner": "alwahdi"
   }
 }
