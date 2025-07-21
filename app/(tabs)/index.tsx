@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   ScrollView,
@@ -12,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Chip, Searchbar, Surface } from 'react-native-paper';
+import { Searchbar, Surface } from 'react-native-paper';
 import { propertiesData, propertyTypes } from '../../constants/PropertiesData';
 
 const { width, height } = Dimensions.get('window');
@@ -22,6 +23,7 @@ const featuredProperties = propertiesData.slice(0, 3);
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [imageLoading, setImageLoading] = useState<{[key: number]: boolean}>({});
   const router = useRouter();
 
   const handlePropertyPress = (propertyId: number) => {
@@ -32,7 +34,24 @@ export default function HomeScreen() {
     const message = encodeURIComponent('مرحباً! أنا مهتم بالعقارات المعروضة.');
     const phoneNumber = '+966501234567';
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
-    console.log('Open WhatsApp:', url);
+    
+    // Actually open WhatsApp
+    const Linking = require('react-native').Linking;
+    Linking.canOpenURL(url).then((supported: boolean) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        console.log('WhatsApp not installed');
+      }
+    });
+  };
+
+  const handleImageLoad = (index: number) => {
+    setImageLoading(prev => ({ ...prev, [index]: false }));
+  };
+
+  const handleImageLoadStart = (index: number) => {
+    setImageLoading(prev => ({ ...prev, [index]: true }));
   };
 
   return (
@@ -93,35 +112,38 @@ export default function HomeScreen() {
           <View style={styles.heroDecoration}>
             <View style={styles.decorationCircle1} />
             <View style={styles.decorationCircle2} />
-            <MaterialIcons name="home" size={120} color="rgba(255,255,255,0.1)" />
           </View>
         </LinearGradient>
 
-        {/* Search Section - Prominent & Accessible */}
-        <View style={styles.searchContainer}>
+        {/* Search Section */}
+        <View style={styles.searchSection}>
           <Surface style={styles.searchSurface} elevation={4}>
             <View style={styles.searchContent}>
               <Searchbar
-                placeholder="ابحث عن عقار في الرياض، جدة، الدمام..."
+                placeholder="ابحث عن عقار، موقع، أو نوع..."
+                placeholderTextColor="#9ca3af"
                 onChangeText={setSearchQuery}
                 value={searchQuery}
                 style={styles.searchBar}
-                iconColor="#f59e0b"
+                iconColor="#6b7280"
                 inputStyle={styles.searchInput}
               />
               
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
-                style={styles.filterScroll}>
-                {propertyTypes.map((type, index) => (
-                  <TouchableOpacity key={type} style={styles.filterChip}>
-                    <Chip 
-                      mode="flat" 
-                      style={styles.chip}
-                      textStyle={styles.chipText}>
-                      {type}
-                    </Chip>
+                style={styles.filterChips}>
+                {propertyTypes.map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    style={styles.filterChip}>
+                    <LinearGradient
+                      colors={['#f1f5f9', '#e2e8f0']}
+                      style={styles.chipGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}>
+                      <Text style={styles.chipText}>{type}</Text>
+                    </LinearGradient>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -129,95 +151,101 @@ export default function HomeScreen() {
           </Surface>
         </View>
 
-        {/* Featured Properties - Visual Storytelling */}
-        <View style={styles.section}>
+        {/* Featured Properties */}
+        <View style={styles.featuredSection}>
           <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>عقارات مميزة</Text>
-              <Text style={styles.sectionSubtitle}>اختر من بين أفضل العقارات المختارة</Text>
-            </View>
-            <TouchableOpacity 
-              onPress={() => router.push('/(tabs)/properties')}
-              style={styles.seeAllButton}>
-              <Text style={styles.seeAllText}>عرض الكل</Text>
-              <MaterialIcons name="arrow-forward" size={16} color="#f59e0b" />
+            <Text style={styles.sectionTitle}>العقارات المميزة</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/properties')}>
+              <Text style={styles.viewAllText}>عرض الكل</Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {featuredProperties.map((property) => (
+          
+          <View style={styles.propertiesGrid}>
+            {featuredProperties.map((property, index) => (
               <TouchableOpacity
                 key={property.id}
                 onPress={() => handlePropertyPress(property.id)}
                 style={styles.propertyCard}>
                 <Surface style={styles.propertySurface} elevation={4}>
                   <View style={styles.propertyImageContainer}>
-                    <Image source={{ uri: property.image }} style={styles.propertyImage} />
+                    {imageLoading[index] && (
+                      <View style={styles.imageLoadingContainer}>
+                        <ActivityIndicator size="large" color="#f59e0b" />
+                      </View>
+                    )}
+                    <Image 
+                      source={{ uri: property.image }} 
+                      style={styles.propertyImage}
+                      resizeMode="cover"
+                      onLoadStart={() => handleImageLoadStart(index)}
+                      onLoad={() => handleImageLoad(index)}
+                    />
                     <LinearGradient
-                      colors={['transparent', 'rgba(0,0,0,0.7)']}
+                      colors={['transparent', 'rgba(0,0,0,0.8)']}
                       style={styles.imageOverlay}>
                       <View style={styles.propertyBadge}>
-                        <Chip mode="flat" style={styles.statusChip}>
-                          {property.status}
-                        </Chip>
+                        <View style={styles.statusChipContainer}>
+                          <LinearGradient
+                            colors={['#dcfce7', '#bbf7d0']}
+                            style={styles.statusChipGradient}>
+                            <Text style={styles.statusChipText}>{property.status}</Text>
+                          </LinearGradient>
+                        </View>
                       </View>
                     </LinearGradient>
                   </View>
                   
                   <View style={styles.propertyContent}>
                     <View style={styles.propertyHeader}>
-                      <Chip mode="flat" style={styles.typeChip}>
-                        {property.type}
-                      </Chip>
-                      <Text style={styles.propertyPrice}>{property.price}</Text>
+                      <View style={styles.typeChipContainer}>
+                        <LinearGradient
+                          colors={['#dbeafe', '#bfdbfe']}
+                          style={styles.typeChipGradient}>
+                          <Text style={styles.typeChipText}>{property.type}</Text>
+                        </LinearGradient>
+                      </View>
                     </View>
                     
-                    <Text style={styles.propertyTitle} numberOfLines={1}>
-                      {property.title}
-                    </Text>
-                    
-                    <View style={styles.propertyLocation}>
-                      <MaterialIcons name="location-on" size={16} color="#6b7280" />
-                      <Text style={styles.locationText} numberOfLines={1}>
-                        {property.location}
-                      </Text>
-                    </View>
+                    <Text style={styles.propertyTitle}>{property.title}</Text>
+                    <Text style={styles.propertyLocation}>{property.location}</Text>
                     
                     <View style={styles.propertyDetails}>
-                      <View style={styles.detailItem}>
-                        <MaterialIcons name="bed" size={18} color="#f59e0b" />
+                      <View style={styles.propertyDetail}>
+                        <MaterialIcons name="bed" size={16} color="#6b7280" />
                         <Text style={styles.detailText}>{property.bedrooms}</Text>
                       </View>
-                      <View style={styles.detailItem}>
-                        <MaterialIcons name="bathroom" size={18} color="#f59e0b" />
+                      <View style={styles.propertyDetail}>
+                        <MaterialIcons name="bathroom" size={16} color="#6b7280" />
                         <Text style={styles.detailText}>{property.bathrooms}</Text>
                       </View>
-                      <View style={styles.detailItem}>
-                        <MaterialIcons name="square-foot" size={18} color="#f59e0b" />
-                        <Text style={styles.detailText}>{property.sqft} م²</Text>
+                      <View style={styles.propertyDetail}>
+                        <MaterialIcons name="square-foot" size={16} color="#6b7280" />
+                        <Text style={styles.detailText}>{property.sqft}م²</Text>
                       </View>
                     </View>
                     
+                    <Text style={styles.propertyPrice}>{property.price}</Text>
+                    
                     <TouchableOpacity
-                      onPress={() => handleWhatsAppContact()}
+                      onPress={() => handlePropertyPress(property.id)}
                       style={styles.propertyCTA}>
                       <LinearGradient
-                        colors={['#10b981', '#059669']}
+                        colors={['#1e40af', '#1e3a8a']}
                         style={styles.propertyButton}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}>
-                        <MaterialIcons name="chat" size={16} color="#ffffff" />
-                        <Text style={styles.propertyButtonText}>تواصل الآن</Text>
+                        <Text style={styles.propertyButtonText}>عرض التفاصيل</Text>
+                        <MaterialIcons name="arrow-forward" size={16} color="#ffffff" />
                       </LinearGradient>
                     </TouchableOpacity>
                   </View>
                 </Surface>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
-        {/* Quick Contact - Compelling CTA */}
+        {/* Contact Section */}
         <View style={styles.contactSection}>
           <Surface style={styles.contactSurface} elevation={4}>
             <LinearGradient
@@ -225,13 +253,11 @@ export default function HomeScreen() {
               style={styles.contactGradient}>
               <View style={styles.contactContent}>
                 <View style={styles.contactIcon}>
-                  <MaterialIcons name="support-agent" size={40} color="#92400e" />
+                  <MaterialIcons name="support-agent" size={32} color="#92400e" />
                 </View>
                 <View style={styles.contactText}>
                   <Text style={styles.contactTitle}>تحتاج مساعدة؟</Text>
-                  <Text style={styles.contactSubtitle}>
-                    تواصل مع خبرائنا للحصول على استشارة مجانية
-                  </Text>
+                  <Text style={styles.contactSubtitle}>فريقنا متاح 24/7 لمساعدتك</Text>
                 </View>
                 <TouchableOpacity
                   onPress={handleWhatsAppContact}
@@ -241,38 +267,13 @@ export default function HomeScreen() {
                     style={styles.whatsappButton}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}>
+                    <Text style={styles.whatsappButtonText}>تواصل معنا</Text>
                     <MaterialIcons name="chat" size={20} color="#ffffff" />
-                    <Text style={styles.whatsappButtonText}>تواصل فوري</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
             </LinearGradient>
           </Surface>
-        </View>
-
-        {/* Trust Indicators */}
-        <View style={styles.trustSection}>
-          <Text style={styles.trustTitle}>لماذا تختار ريعة؟</Text>
-          <View style={styles.trustGrid}>
-            <View style={styles.trustItem}>
-              <View style={styles.trustIcon}>
-                <MaterialIcons name="verified" size={32} color="#10b981" />
-              </View>
-              <Text style={styles.trustLabel}>عقارات موثقة</Text>
-            </View>
-            <View style={styles.trustItem}>
-              <View style={styles.trustIcon}>
-                <MaterialIcons name="security" size={32} color="#3b82f6" />
-              </View>
-              <Text style={styles.trustLabel}>ضمان الجودة</Text>
-            </View>
-            <View style={styles.trustItem}>
-              <View style={styles.trustIcon}>
-                <MaterialIcons name="support-agent" size={32} color="#f59e0b" />
-              </View>
-              <Text style={styles.trustLabel}>دعم 24/7</Text>
-            </View>
-          </View>
         </View>
       </ScrollView>
     </View>
@@ -292,8 +293,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingHorizontal: 20,
     position: 'relative',
-    overflow: 'hidden',
-    minHeight: height * 0.6,
   },
   heroContent: {
     alignItems: 'center',
@@ -333,7 +332,6 @@ const styles = StyleSheet.create({
   heroStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 16,
     padding: 20,
@@ -359,6 +357,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   heroCTA: {
+    marginTop: 32,
     width: '100%',
   },
   heroButton: {
@@ -366,19 +365,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    paddingHorizontal: 32,
     borderRadius: 30,
     elevation: 4,
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
   heroButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginRight: 12,
+    marginRight: 8,
   },
   heroDecoration: {
     position: 'absolute',
@@ -404,109 +398,120 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
   },
-  searchContainer: {
-    marginTop: -30,
-    paddingHorizontal: 20,
-    zIndex: 10,
+  searchSection: {
+    padding: 20,
+    marginTop: -20,
   },
   searchSurface: {
     borderRadius: 20,
-    backgroundColor: '#ffffff',
-    elevation: 4,
   },
   searchContent: {
     padding: 20,
   },
   searchBar: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
     borderRadius: 15,
-    elevation: 0,
-    marginBottom: 16,
+    elevation: 2,
   },
   searchInput: {
     fontSize: 16,
     color: '#1f2937',
+    textAlign: 'right',
   },
-  filterScroll: {
-    flexDirection: 'row',
+  filterChips: {
+    marginTop: 16,
   },
   filterChip: {
     marginRight: 12,
   },
-  chip: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b',
-  },
-  chipText: {
-    color: '#92400e',
-    fontWeight: '600',
-  },
-  section: {
-    padding: 20,
-    paddingTop: 40,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-    lineHeight: 22,
-  },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fef3c7',
+  chipGradient: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
-  seeAllText: {
-    color: '#92400e',
+  chipText: {
+    color: '#374151',
     fontSize: 14,
+    fontWeight: '500',
+  },
+  featuredSection: {
+    padding: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  viewAllText: {
+    fontSize: 16,
+    color: '#f59e0b',
     fontWeight: '600',
-    marginRight: 4,
+  },
+  propertiesGrid: {
+    gap: 20,
   },
   propertyCard: {
-    width: width * 0.85,
-    marginRight: 16,
+    marginBottom: 20,
   },
   propertySurface: {
     borderRadius: 20,
     backgroundColor: '#ffffff',
-    overflow: 'hidden',
+    elevation: 4,
   },
   propertyImageContainer: {
     position: 'relative',
     height: 200,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  imageLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   propertyImage: {
     width: '100%',
     height: '100%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   imageOverlay: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    height: 60,
-    justifyContent: 'flex-end',
+    bottom: 0,
+    justifyContent: 'space-between',
     padding: 16,
   },
   propertyBadge: {
     alignSelf: 'flex-start',
   },
-  statusChip: {
-    backgroundColor: '#dcfce7',
+  statusChipContainer: {
+    borderRadius: 12,
+  },
+  statusChipGradient: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  statusChipText: {
+    color: '#166534',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   propertyContent: {
     padding: 20,
@@ -517,46 +522,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  typeChip: {
-    backgroundColor: '#dbeafe',
+  typeChipContainer: {
+    borderRadius: 12,
   },
-  propertyPrice: {
-    fontSize: 20,
+  typeChipGradient: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  typeChipText: {
+    color: '#1e40af',
+    fontSize: 12,
     fontWeight: 'bold',
-    color: '#f59e0b',
   },
   propertyTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 8,
-    lineHeight: 24,
+    marginBottom: 4,
   },
   propertyLocation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  locationText: {
     fontSize: 14,
     color: '#6b7280',
-    marginLeft: 6,
-    flex: 1,
+    marginBottom: 12,
   },
   propertyDetails: {
     flexDirection: 'row',
-    marginBottom: 20,
-    gap: 20,
+    marginBottom: 12,
+    gap: 16,
   },
-  detailItem: {
+  propertyDetail: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   detailText: {
     fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
+    color: '#6b7280',
+  },
+  propertyPrice: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    marginBottom: 16,
   },
   propertyCTA: {
     width: '100%',
@@ -581,10 +589,11 @@ const styles = StyleSheet.create({
   },
   contactSurface: {
     borderRadius: 20,
-    overflow: 'hidden',
+    elevation: 4,
   },
   contactGradient: {
     padding: 24,
+    borderRadius: 20,
   },
   contactContent: {
     flexDirection: 'row',
@@ -605,10 +614,10 @@ const styles = StyleSheet.create({
   contactSubtitle: {
     fontSize: 14,
     color: '#92400e',
-    lineHeight: 20,
+    opacity: 0.8,
   },
   contactCTA: {
-    marginLeft: 16,
+    borderRadius: 25,
   },
   whatsappButton: {
     flexDirection: 'row',
@@ -616,48 +625,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
-    elevation: 2,
   },
   whatsappButtonText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginLeft: 8,
-  },
-  trustSection: {
-    padding: 20,
-    paddingTop: 40,
-    paddingBottom: 40,
-  },
-  trustTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  trustGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  trustItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  trustIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#f8fafc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    elevation: 2,
-  },
-  trustLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontWeight: '500',
-    textAlign: 'center',
+    marginRight: 8,
   },
 });

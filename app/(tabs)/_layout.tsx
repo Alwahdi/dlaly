@@ -9,39 +9,29 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#1e40af',
+        headerShown: false, // Hide the top bar completely
+        tabBarActiveTintColor: '#f59e0b',
         tabBarInactiveTintColor: '#6b7280',
         tabBarStyle: {
           backgroundColor: '#ffffff',
           borderTopColor: '#e5e7eb',
           borderTopWidth: 1,
-          height: 80,
-          paddingBottom: 12,
-          paddingTop: 12,
-          elevation: 8,
+          height: 85,
+          paddingBottom: 15,
+          paddingTop: 10,
+          elevation: 12,
           shadowColor: '#000',
           shadowOffset: {
             width: 0,
-            height: -2,
+            height: -4,
           },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
         },
-        headerStyle: {
-          backgroundColor: '#0f172a',
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: '#ffffff',
-        headerTitleStyle: {
-          fontSize: 20,
-          fontWeight: 'bold',
-        },
-        headerTitleAlign: 'center',
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
-          marginTop: 4,
+          marginTop: 6,
         },
         tabBarIconStyle: {
           marginBottom: 2,
@@ -51,27 +41,20 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'الرئيسية',
-          headerTitle: 'عقارات الرياض',
-          headerBackground: () => (
-            <LinearGradient
-              colors={['#0f172a', '#1e293b']}
-              style={StyleSheet.absoluteFillObject}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          ),
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>
               {focused ? (
                 <LinearGradient
-                  colors={['#1e40af', '#1e3a8a']}
+                  colors={['#f59e0b', '#d97706']}
                   style={styles.activeIconBackground}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}>
-                  <MaterialIcons name="home" size={24} color="#ffffff" />
+                  <MaterialIcons name="home" size={26} color="#ffffff" />
                 </LinearGradient>
               ) : (
-                <MaterialIcons name="home" size={24} color={color} />
+                <View style={styles.inactiveIconBackground}>
+                  <MaterialIcons name="home" size={26} color={color} />
+                </View>
               )}
             </View>
           ),
@@ -81,27 +64,20 @@ export default function TabLayout() {
         name="properties"
         options={{
           title: 'العقارات',
-          headerTitle: 'تصفح العقارات',
-          headerBackground: () => (
-            <LinearGradient
-              colors={['#0f172a', '#1e293b']}
-              style={StyleSheet.absoluteFillObject}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          ),
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>
               {focused ? (
                 <LinearGradient
-                  colors={['#1e40af', '#1e3a8a']}
+                  colors={['#f59e0b', '#d97706']}
                   style={styles.activeIconBackground}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}>
-                  <MaterialIcons name="apartment" size={24} color="#ffffff" />
+                  <MaterialIcons name="apartment" size={26} color="#ffffff" />
                 </LinearGradient>
               ) : (
-                <MaterialIcons name="apartment" size={24} color={color} />
+                <View style={styles.inactiveIconBackground}>
+                  <MaterialIcons name="apartment" size={26} color={color} />
+                </View>
               )}
             </View>
           ),
@@ -111,27 +87,20 @@ export default function TabLayout() {
         name="map"
         options={{
           title: 'الخريطة',
-          headerTitle: 'خريطة العقارات',
-          headerBackground: () => (
-            <LinearGradient
-              colors={['#0f172a', '#1e293b']}
-              style={StyleSheet.absoluteFillObject}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          ),
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>
               {focused ? (
                 <LinearGradient
-                  colors={['#1e40af', '#1e3a8a']}
+                  colors={['#f59e0b', '#d97706']}
                   style={styles.activeIconBackground}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}>
-                  <MaterialIcons name="map" size={24} color="#ffffff" />
+                  <MaterialIcons name="map" size={26} color="#ffffff" />
                 </LinearGradient>
               ) : (
-                <MaterialIcons name="map" size={24} color={color} />
+                <View style={styles.inactiveIconBackground}>
+                  <MaterialIcons name="map" size={26} color={color} />
+                </View>
               )}
             </View>
           ),
@@ -141,27 +110,20 @@ export default function TabLayout() {
         name="contact"
         options={{
           title: 'اتصل بنا',
-          headerTitle: 'تواصل معنا',
-          headerBackground: () => (
-            <LinearGradient
-              colors={['#0f172a', '#1e293b']}
-              style={StyleSheet.absoluteFillObject}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          ),
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>
               {focused ? (
                 <LinearGradient
-                  colors={['#1e40af', '#1e3a8a']}
+                  colors={['#f59e0b', '#d97706']}
                   style={styles.activeIconBackground}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}>
-                  <MaterialIcons name="contact-phone" size={24} color="#ffffff" />
+                  <MaterialIcons name="contact-phone" size={26} color="#ffffff" />
                 </LinearGradient>
               ) : (
-                <MaterialIcons name="contact-phone" size={24} color={color} />
+                <View style={styles.inactiveIconBackground}>
+                  <MaterialIcons name="contact-phone" size={26} color={color} />
+                </View>
               )}
             </View>
           ),
@@ -175,20 +137,30 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 50,
+    height: 50,
   },
   activeIconBackground: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#1e40af',
+    elevation: 6,
+    shadowColor: '#f59e0b',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+  },
+  inactiveIconBackground: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(107, 114, 128, 0.1)',
   },
 });

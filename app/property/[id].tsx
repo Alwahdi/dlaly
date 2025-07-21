@@ -3,17 +3,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    Linking,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  Linking,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Divider, Surface } from 'react-native-paper';
+import { Surface } from 'react-native-paper';
 import { propertiesData } from '../../constants/PropertiesData';
 
 const { width, height } = Dimensions.get('window');
@@ -23,41 +23,11 @@ export default function PropertyDetailsScreen() {
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const property = propertiesData.find(p => p.id === Number(id));
-
-  if (!property) {
-    return (
-      <View style={styles.errorContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
-        <LinearGradient
-          colors={['#0f172a', '#1e293b']}
-          style={styles.errorGradient}>
-          <View style={styles.errorContent}>
-            <MaterialIcons name="error-outline" size={80} color="#fbbf24" />
-            <Text style={styles.errorTitle}>العقار غير موجود</Text>
-            <Text style={styles.errorSubtitle}>
-              عذراً، العقار الذي تبحث عنه غير متاح حالياً
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.errorButton}>
-              <LinearGradient
-                colors={['#1e40af', '#1e3a8a']}
-                style={styles.errorButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}>
-                <MaterialIcons name="arrow-back" size={20} color="#ffffff" />
-                <Text style={styles.errorButtonText}>العودة للعقارات</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-      </View>
-    );
-  }
+  // Find the property by ID
+  const property = propertiesData.find(p => p.id === Number(id)) || propertiesData[0];
 
   const handleWhatsAppContact = () => {
-    const message = encodeURIComponent(`مرحباً! أنا مهتم بالعقار ${property.title} بسعر ${property.price}`);
+    const message = encodeURIComponent(`مرحباً! أنا مهتم بـ ${property.title} مقابل ${property.price}`);
     const phoneNumber = property.agent.phone;
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     
@@ -65,33 +35,35 @@ export default function PropertyDetailsScreen() {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert('خطأ', 'واتساب غير مثبت على هذا الجهاز');
+        console.log('WhatsApp not installed');
       }
     });
   };
 
   const handlePhoneCall = () => {
-    const url = `tel:${property.agent.phone}`;
+    const phoneNumber = property.agent.phone;
+    const url = `tel:${phoneNumber}`;
     
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert('خطأ', 'تطبيق الهاتف غير متاح');
+        console.log('Phone app not available');
       }
     });
   };
 
   const handleEmailContact = () => {
+    const emailAddress = property.agent.email;
     const subject = encodeURIComponent(`استفسار عن ${property.title}`);
-    const body = encodeURIComponent(`مرحباً ${property.agent.name}،\n\nأنا مهتم بالعقار ${property.title} بسعر ${property.price}.\n\nيرجى تزويدي بمزيد من المعلومات.\n\nشكراً لك.`);
-    const url = `mailto:${property.agent.email}?subject=${subject}&body=${body}`;
+    const body = encodeURIComponent(`مرحباً، أود الاستفسار عن ${property.title} مقابل ${property.price}`);
+    const url = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
     
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert('خطأ', 'تطبيق البريد الإلكتروني غير متاح');
+        console.log('Email app not available');
       }
     });
   };
@@ -120,6 +92,11 @@ export default function PropertyDetailsScreen() {
             }}>
             {property.images.map((image, index) => (
               <View key={index} style={styles.imageWrapper}>
+                <Image 
+                  source={{ uri: image }} 
+                  style={styles.propertyImage}
+                  resizeMode="cover"
+                />
                 <LinearGradient
                   colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(0,0,0,0.4)']}
                   style={styles.imageOverlay}>
@@ -165,9 +142,6 @@ export default function PropertyDetailsScreen() {
                     </View>
                   </View>
                 </LinearGradient>
-                <View style={styles.imageBackground}>
-                  <View style={styles.actualImage} />
-                </View>
               </View>
             ))}
           </ScrollView>
@@ -204,157 +178,136 @@ export default function PropertyDetailsScreen() {
               <View style={styles.propertyStats}>
                 <View style={styles.statItem}>
                   <View style={styles.statIcon}>
-                    <MaterialIcons name="bed" size={24} color="#1e40af" />
+                    <MaterialIcons name="bed" size={20} color="#f59e0b" />
                   </View>
-                  <Text style={styles.statNumber}>{property.bedrooms}</Text>
+                  <Text style={styles.statValue}>{property.bedrooms}</Text>
                   <Text style={styles.statLabel}>غرف نوم</Text>
                 </View>
+                
                 <View style={styles.statDivider} />
+                
                 <View style={styles.statItem}>
                   <View style={styles.statIcon}>
-                    <MaterialIcons name="bathroom" size={24} color="#1e40af" />
+                    <MaterialIcons name="bathroom" size={20} color="#f59e0b" />
                   </View>
-                  <Text style={styles.statNumber}>{property.bathrooms}</Text>
-                  <Text style={styles.statLabel}>حمامات</Text>
+                  <Text style={styles.statValue}>{property.bathrooms}</Text>
+                  <Text style={styles.statLabel}>حمام</Text>
                 </View>
+                
                 <View style={styles.statDivider} />
+                
                 <View style={styles.statItem}>
                   <View style={styles.statIcon}>
-                    <MaterialIcons name="square-foot" size={24} color="#1e40af" />
+                    <MaterialIcons name="square-foot" size={20} color="#f59e0b" />
                   </View>
-                  <Text style={styles.statNumber}>{property.sqft}</Text>
-                  <Text style={styles.statLabel}>متر مربع</Text>
+                  <Text style={styles.statValue}>{property.sqft}</Text>
+                  <Text style={styles.statLabel}>م²</Text>
                 </View>
               </View>
             </View>
           </Surface>
 
-          {/* Description */}
+          {/* Description Section */}
           <Surface style={styles.descriptionSurface} elevation={4}>
             <View style={styles.descriptionContent}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons name="description" size={28} color="#1e40af" />
-                <Text style={styles.sectionTitle}>وصف العقار</Text>
-              </View>
-              <Divider style={styles.divider} />
+              <Text style={styles.sectionTitle}>وصف العقار</Text>
               <Text style={styles.descriptionText}>{property.description}</Text>
             </View>
           </Surface>
 
-          {/* Amenities */}
+          {/* Amenities Section */}
           <Surface style={styles.amenitiesSurface} elevation={4}>
             <View style={styles.amenitiesContent}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons name="star" size={28} color="#1e40af" />
-                <Text style={styles.sectionTitle}>المرافق المتوفرة</Text>
-              </View>
-              <Divider style={styles.divider} />
+              <Text style={styles.sectionTitle}>المرافق المتوفرة</Text>
               <View style={styles.amenitiesGrid}>
                 {property.amenities.map((amenity, index) => (
                   <View key={index} style={styles.amenityItem}>
-                    <LinearGradient
-                      colors={['#dcfce7', '#bbf7d0']}
-                      style={styles.amenityGradient}>
-                      <MaterialIcons name="check-circle" size={16} color="#166534" />
-                      <Text style={styles.amenityText}>{amenity}</Text>
-                    </LinearGradient>
+                    <View style={styles.amenityIcon}>
+                      <MaterialIcons name="check-circle" size={16} color="#10b981" />
+                    </View>
+                    <Text style={styles.amenityText}>{amenity}</Text>
                   </View>
                 ))}
               </View>
             </View>
           </Surface>
 
-          {/* Agent Information */}
+          {/* Agent Section */}
           <Surface style={styles.agentSurface} elevation={4}>
             <View style={styles.agentContent}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons name="person" size={28} color="#1e40af" />
-                <Text style={styles.sectionTitle}>معلومات المستشار</Text>
-              </View>
-              <Divider style={styles.divider} />
+              <Text style={styles.sectionTitle}>معلومات الوكيل</Text>
               
               <View style={styles.agentInfo}>
                 <View style={styles.agentAvatar}>
-                  <LinearGradient
-                    colors={['#dbeafe', '#bfdbfe']}
-                    style={styles.avatarGradient}>
-                    <MaterialIcons name="person" size={48} color="#1e40af" />
-                  </LinearGradient>
+                  <MaterialIcons name="person" size={32} color="#1e40af" />
                 </View>
                 <View style={styles.agentDetails}>
                   <Text style={styles.agentName}>{property.agent.name}</Text>
                   <Text style={styles.agentRole}>مستشار عقاري</Text>
-                  <View style={styles.agentContact}>
-                    <View style={styles.contactItem}>
-                      <MaterialIcons name="phone" size={16} color="#6b7280" />
-                      <Text style={styles.contactText}>{property.agent.phone}</Text>
-                    </View>
-                    <View style={styles.contactItem}>
-                      <MaterialIcons name="email" size={16} color="#6b7280" />
-                      <Text style={styles.contactText}>{property.agent.email}</Text>
-                    </View>
-                  </View>
+                  <Text style={styles.agentPhone}>{property.agent.phone}</Text>
+                  <Text style={styles.agentEmail}>{property.agent.email}</Text>
                 </View>
+              </View>
+              
+              <View style={styles.contactButtons}>
+                <TouchableOpacity
+                  onPress={handleWhatsAppContact}
+                  style={styles.contactButton}>
+                  <LinearGradient
+                    colors={['#25d366', '#128c7e']}
+                    style={styles.whatsappGradient}>
+                    <MaterialIcons name="chat" size={20} color="#ffffff" />
+                    <Text style={styles.contactButtonText}>واتساب</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={handlePhoneCall}
+                  style={styles.contactButton}>
+                  <LinearGradient
+                    colors={['#3b82f6', '#1e40af']}
+                    style={styles.phoneGradient}>
+                    <MaterialIcons name="phone" size={20} color="#ffffff" />
+                    <Text style={styles.contactButtonText}>اتصال</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={handleEmailContact}
+                  style={styles.contactButton}>
+                  <LinearGradient
+                    colors={['#f59e0b', '#d97706']}
+                    style={styles.emailGradient}>
+                    <MaterialIcons name="email" size={20} color="#ffffff" />
+                    <Text style={styles.contactButtonText}>إيميل</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           </Surface>
 
-          {/* Action Buttons */}
-          <View style={styles.actionSection}>
-            <TouchableOpacity
-              onPress={handleWhatsAppContact}
-              style={styles.primaryAction}>
-              <LinearGradient
-                colors={['#25d366', '#128c7e']}
-                style={styles.primaryActionGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}>
-                <MaterialIcons name="chat" size={24} color="#ffffff" />
-                <Text style={styles.primaryActionText}>تواصل عبر واتساب</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            
-            <View style={styles.secondaryActions}>
-              <TouchableOpacity
-                onPress={handlePhoneCall}
-                style={styles.secondaryAction}>
-                <LinearGradient
-                  colors={['#3b82f6', '#1e40af']}
-                  style={styles.secondaryActionGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}>
-                  <MaterialIcons name="phone" size={20} color="#ffffff" />
-                  <Text style={styles.secondaryActionText}>اتصال</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                onPress={handleEmailContact}
-                style={styles.secondaryAction}>
-                <LinearGradient
-                  colors={['#f59e0b', '#d97706']}
-                  style={styles.secondaryActionGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}>
-                  <MaterialIcons name="email" size={20} color="#ffffff" />
-                  <Text style={styles.secondaryActionText}>بريد</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                onPress={handleDirections}
-                style={styles.secondaryAction}>
-                <LinearGradient
-                  colors={['#10b981', '#059669']}
-                  style={styles.secondaryActionGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}>
-                  <MaterialIcons name="directions" size={20} color="#ffffff" />
-                  <Text style={styles.secondaryActionText}>خريطة</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* Location Section */}
+          {property.coordinate && (
+            <Surface style={styles.locationSurface} elevation={4}>
+              <View style={styles.locationContent}>
+                <Text style={styles.sectionTitle}>الموقع</Text>
+                <View style={styles.mapPlaceholder}>
+                  <MaterialIcons name="map" size={48} color="#6b7280" />
+                  <Text style={styles.mapText}>خريطة الموقع</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={handleDirections}
+                  style={styles.directionsButton}>
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    style={styles.directionsGradient}>
+                    <MaterialIcons name="directions" size={20} color="#ffffff" />
+                    <Text style={styles.directionsText}>احصل على الاتجاهات</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </Surface>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -369,71 +322,17 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  errorContainer: {
-    flex: 1,
-  },
-  errorGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  errorContent: {
-    alignItems: 'center',
-  },
-  errorTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginTop: 20,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  errorSubtitle: {
-    fontSize: 16,
-    color: '#cbd5e1',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
-  },
-  errorButton: {
-    width: '100%',
-  },
-  errorButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 30,
-    elevation: 4,
-  },
-  errorButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginLeft: 8,
-  },
   imageContainer: {
-    height: height * 0.5,
     position: 'relative',
+    height: height * 0.5,
   },
   imageWrapper: {
     width: width,
     height: height * 0.5,
-    position: 'relative',
   },
-  imageBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#1e293b',
-  },
-  actualImage: {
+  propertyImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#374151',
   },
   imageOverlay: {
     position: 'absolute',
@@ -441,38 +340,39 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 2,
+    justifyContent: 'space-between',
+    padding: 20,
   },
   imageContent: {
     flex: 1,
-    padding: 20,
     justifyContent: 'space-between',
   },
   imageHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginTop: 50,
   },
   backButton: {
     borderRadius: 20,
-    overflow: 'hidden',
   },
   backButtonGradient: {
-    padding: 12,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
   },
   headerBadges: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   statusBadge: {
-    borderRadius: 15,
-    overflow: 'hidden',
+    borderRadius: 12,
   },
   statusGradient: {
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderRadius: 12,
   },
   statusText: {
     color: '#166534',
@@ -480,12 +380,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   typeBadge: {
-    borderRadius: 15,
-    overflow: 'hidden',
+    borderRadius: 12,
   },
   typeGradient: {
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderRadius: 12,
   },
   typeText: {
     color: '#1e40af',
@@ -496,42 +396,39 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   priceContainer: {
-    borderRadius: 20,
-    overflow: 'hidden',
+    borderRadius: 12,
   },
   priceGradient: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   propertyPrice: {
-    fontSize: 24,
+    color: '#fbbf24',
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
   },
   imageIndicators: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 20,
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    zIndex: 3,
   },
   indicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    overflow: 'hidden',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  activeIndicator: {
+    width: 24,
   },
   indicatorGradient: {
     width: '100%',
     height: '100%',
-  },
-  activeIndicator: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    borderRadius: 4,
   },
   contentContainer: {
     padding: 20,
@@ -539,17 +436,18 @@ const styles = StyleSheet.create({
   },
   headerSurface: {
     borderRadius: 20,
-    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    elevation: 4,
   },
   headerContent: {
-    padding: 24,
+    padding: 20,
   },
   propertyTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1f2937',
     marginBottom: 12,
-    lineHeight: 36,
+    lineHeight: 32,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -563,28 +461,33 @@ const styles = StyleSheet.create({
   },
   propertyStats: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 16,
-    padding: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   statItem: {
     alignItems: 'center',
-    flex: 1,
   },
   statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fef3c7',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  statNumber: {
-    fontSize: 20,
+  statValue: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e40af',
-    marginBottom: 4,
+    color: '#1f2937',
   },
   statLabel: {
     fontSize: 12,
     color: '#6b7280',
-    fontWeight: '500',
+    marginTop: 2,
   },
   statDivider: {
     width: 1,
@@ -593,37 +496,30 @@ const styles = StyleSheet.create({
   },
   descriptionSurface: {
     borderRadius: 20,
-    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    elevation: 4,
   },
   descriptionContent: {
-    padding: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
+    padding: 20,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginLeft: 12,
-  },
-  divider: {
     marginBottom: 16,
-    backgroundColor: '#e5e7eb',
   },
   descriptionText: {
     fontSize: 16,
-    color: '#4b5563',
-    lineHeight: 26,
+    color: '#6b7280',
+    lineHeight: 24,
   },
   amenitiesSurface: {
     borderRadius: 20,
-    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    elevation: 4,
   },
   amenitiesContent: {
-    padding: 24,
+    padding: 20,
   },
   amenitiesGrid: {
     flexDirection: 'row',
@@ -631,108 +527,140 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   amenityItem: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  amenityGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    gap: 8,
+    borderRadius: 12,
+    minWidth: '45%',
+  },
+  amenityIcon: {
+    marginRight: 8,
   },
   amenityText: {
     fontSize: 14,
-    color: '#166534',
-    fontWeight: '600',
+    color: '#374151',
+    fontWeight: '500',
   },
   agentSurface: {
     borderRadius: 20,
-    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    elevation: 4,
   },
   agentContent: {
-    padding: 24,
+    padding: 20,
   },
   agentInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
   },
   agentAvatar: {
-    marginRight: 20,
-  },
-  avatarGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#dbeafe',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 16,
   },
   agentDetails: {
     flex: 1,
   },
   agentName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
     marginBottom: 4,
   },
   agentRole: {
-    fontSize: 16,
-    color: '#1e40af',
-    marginBottom: 12,
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 4,
   },
-  agentContact: {
-    gap: 8,
+  agentPhone: {
+    fontSize: 14,
+    color: '#3b82f6',
+    marginBottom: 2,
   },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  contactText: {
+  agentEmail: {
     fontSize: 14,
     color: '#6b7280',
   },
-  actionSection: {
-    marginBottom: 40,
-    gap: 16,
+  contactButtons: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  primaryAction: {
-    width: '100%',
+  contactButton: {
+    flex: 1,
+    borderRadius: 25,
   },
-  primaryActionGradient: {
+  whatsappGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    borderRadius: 30,
-    elevation: 4,
+    paddingVertical: 12,
+    borderRadius: 25,
   },
-  primaryActionText: {
-    fontSize: 18,
+  phoneGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  emailGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  contactButtonText: {
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#ffffff',
     marginLeft: 8,
   },
-  secondaryActions: {
-    flexDirection: 'row',
-    gap: 12,
+  locationSurface: {
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    elevation: 4,
   },
-  secondaryAction: {
-    flex: 1,
+  locationContent: {
+    padding: 20,
   },
-  secondaryActionGradient: {
+  mapPlaceholder: {
+    height: 200,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  mapText: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginTop: 8,
+  },
+  directionsButton: {
+    borderRadius: 25,
+  },
+  directionsGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 25,
-    elevation: 2,
   },
-  secondaryActionText: {
-    fontSize: 14,
+  directionsText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginLeft: 6,
+    marginLeft: 8,
   },
 }); 

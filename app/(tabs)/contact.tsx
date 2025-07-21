@@ -2,17 +2,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Divider, Surface, TextInput } from 'react-native-paper';
-import { agentInfo, officeInfo, services } from '../../constants/PropertiesData';
+import { Divider, Surface } from 'react-native-paper';
+import { agentInfo, officeInfo } from '../../constants/PropertiesData';
 
 export default function ContactScreen() {
   const [name, setName] = useState('');
@@ -20,6 +22,16 @@ export default function ContactScreen() {
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [selectedService, setSelectedService] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const services = [
+    'شراء عقار',
+    'بيع عقار',
+    'استئجار عقار',
+    'تأجير عقار',
+    'استشارة عقارية',
+    'تقييم عقار'
+  ];
 
   const handleWhatsAppContact = (customMessage?: string) => {
     const defaultMessage = 'مرحباً! أنا مهتم بالخدمات العقارية المقدمة.';
@@ -65,29 +77,35 @@ export default function ContactScreen() {
     });
   };
 
-  const handleSubmitForm = () => {
+  const handleSubmitForm = async () => {
     if (!name || !email || !message) {
       Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
       return;
     }
 
-    console.log('Form submitted:', { name, email, phone, message, selectedService });
-    Alert.alert(
-      'تم الإرسال بنجاح',
-      'شكراً لك على رسالتك! سنتواصل معك قريباً.',
-      [
-        {
-          text: 'حسناً',
-          onPress: () => {
-            setName('');
-            setEmail('');
-            setPhone('');
-            setMessage('');
-            setSelectedService('');
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      console.log('Form submitted:', { name, email, phone, message, selectedService });
+      Alert.alert(
+        'تم الإرسال بنجاح',
+        'شكراً لك على رسالتك! سنتواصل معك قريباً.',
+        [
+          {
+            text: 'حسناً',
+            onPress: () => {
+              setName('');
+              setEmail('');
+              setPhone('');
+              setMessage('');
+              setSelectedService('');
+              setIsSubmitting(false);
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }, 2000);
   };
 
   return (
@@ -98,21 +116,26 @@ export default function ContactScreen() {
         {/* Hero Header */}
         <LinearGradient
           colors={['#0f172a', '#1e293b', '#334155']}
-          style={styles.heroSection}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}>
+          style={styles.heroSection}>
           <View style={styles.heroContent}>
             <View style={styles.heroBadge}>
-              <MaterialIcons name="support-agent" size={20} color="#fbbf24" />
-              <Text style={styles.heroBadgeText}>دعم 24/7</Text>
+              <MaterialIcons name="support-agent" size={16} color="#fbbf24" />
+              <Text style={styles.heroBadgeText}>فريق دعم متخصص</Text>
             </View>
             
-            <Text style={styles.heroTitle}>تواصل معنا</Text>
+            <Text style={styles.heroTitle}>
+              تواصل معنا
+            </Text>
             <Text style={styles.heroSubtitle}>
               نحن هنا لمساعدتك في العثور على العقار المثالي
             </Text>
             
             <View style={styles.heroStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>24/7</Text>
+                <Text style={styles.statLabel}>دعم متواصل</Text>
+              </View>
+              <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>15+</Text>
                 <Text style={styles.statLabel}>سنة خبرة</Text>
@@ -122,18 +145,12 @@ export default function ContactScreen() {
                 <Text style={styles.statNumber}>500+</Text>
                 <Text style={styles.statLabel}>عميل سعيد</Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>4.9★</Text>
-                <Text style={styles.statLabel}>تقييم العملاء</Text>
-              </View>
             </View>
           </View>
           
           <View style={styles.heroDecoration}>
             <View style={styles.decorationCircle1} />
             <View style={styles.decorationCircle2} />
-            <MaterialIcons name="contact-phone" size={100} color="rgba(255,255,255,0.1)" />
           </View>
         </LinearGradient>
 
@@ -311,14 +328,21 @@ export default function ContactScreen() {
               
               <TouchableOpacity
                 onPress={handleSubmitForm}
+                disabled={isSubmitting}
                 style={styles.submitButton}>
                 <LinearGradient
                   colors={['#1e40af', '#1e3a8a']}
                   style={styles.submitButtonGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}>
-                  <MaterialIcons name="send" size={20} color="#ffffff" />
-                  <Text style={styles.submitButtonText}>إرسال الرسالة</Text>
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <>
+                      <MaterialIcons name="send" size={20} color="#ffffff" />
+                      <Text style={styles.submitButtonText}>إرسال الرسالة</Text>
+                    </>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -346,17 +370,18 @@ export default function ContactScreen() {
                 </View>
                 <View style={styles.agentDetails}>
                   <Text style={styles.agentName}>{agentInfo.name}</Text>
-                  <Text style={styles.agentRole}>{agentInfo.role}</Text>
-                  <Text style={styles.agentExperience}>{agentInfo.experience}</Text>
+                  <Text style={styles.agentRole}>مستشار عقاري محترف</Text>
+                  <Text style={styles.agentPhone}>{agentInfo.phone}</Text>
+                  <Text style={styles.agentEmail}>{agentInfo.email}</Text>
                   
                   <View style={styles.agentStats}>
                     <View style={styles.agentStatItem}>
-                      <Text style={styles.agentStatNumber}>{agentInfo.stats.propertiesSold}</Text>
+                      <Text style={styles.agentStatNumber}>200+</Text>
                       <Text style={styles.agentStatLabel}>عقار مباع</Text>
                     </View>
                     <View style={styles.agentStatDivider} />
                     <View style={styles.agentStatItem}>
-                      <Text style={styles.agentStatNumber}>{agentInfo.stats.clientRating}</Text>
+                      <Text style={styles.agentStatNumber}>4.9</Text>
                       <Text style={styles.agentStatLabel}>تقييم العملاء</Text>
                     </View>
                   </View>
@@ -438,7 +463,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingHorizontal: 20,
     position: 'relative',
-    overflow: 'hidden',
   },
   heroContent: {
     alignItems: 'center',
@@ -534,10 +558,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   cardWrapper: {
-    overflow: 'hidden',
+    borderRadius: 20,
   },
   cardGradient: {
     padding: 24,
+    borderRadius: 20,
   },
   cardContent: {
     flexDirection: 'row',
@@ -709,26 +734,32 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   agentRole: {
-    fontSize: 16,
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  agentPhone: {
+    fontSize: 14,
     color: '#1e40af',
     marginBottom: 4,
   },
-  agentExperience: {
+  agentEmail: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#1e40af',
     marginBottom: 16,
   },
   agentStats: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 20,
   },
   agentStatItem: {
     alignItems: 'center',
   },
   agentStatNumber: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e40af',
+    color: '#f59e0b',
   },
   agentStatLabel: {
     fontSize: 12,
@@ -786,13 +817,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   officeIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#f1f5f9',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 16,
+    marginTop: 2,
   },
   officeText: {
     flex: 1,
